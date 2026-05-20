@@ -1,0 +1,8 @@
+[lint]
+select = ["E", "F", "W"]
+ignore = [
+    "E501",   # line too long — not enforced yet
+    "F401",   # unused imports in __init__.py re-exports
+    "W291",   # trailing whitespace
+]
+exclude = ["alembic/versions/"]
