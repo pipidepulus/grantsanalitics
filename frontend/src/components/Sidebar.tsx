@@ -437,9 +437,9 @@ export function Sidebar({
           <HelpCircle className="w-4 h-4" />
           <span className="text-sm">Ayuda &amp; Manual de Usuario</span>
         </button>
-        <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-[var(--bg-tertiary)] transition-colors">
+        <button disabled className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm opacity-40 cursor-not-allowed" title="Próximamente">
           <User className="w-4 h-4" />
-          <span className="text-sm text-[var(--text-secondary)]">Perfil Proponente</span>
+          <span className="text-sm text-[var(--text-secondary)]">Perfil Proponente <span className="text-[10px] ml-1">(próximamente)</span></span>
         </button>
       </div>
 
@@ -476,6 +476,20 @@ export function Sidebar({
                   <li>Usa <strong>Revisión / Análisis</strong> para ver el estado del documento y el puntaje Cyrano. Cuando alcance <strong>≥ 95.01</strong>, el documento estará listo para exportar.</li>
                   <li>Todos los archivos subidos y generados están en la sección <strong>Documentos</strong> de cada proyecto.</li>
                 </ol>
+              </section>
+
+              <section>
+                <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-2">📎 Cómo compartir una convocatoria con el asistente</h3>
+                <p className="mb-2">Tenés dos formas de darle el texto de una convocatoria:</p>
+                <ul className="space-y-2 list-disc list-inside">
+                  <li><strong className="text-[var(--text-primary)]">Adjuntar archivo</strong> — Hacé clic en el ícono 📎 en la barra de escritura y seleccioná un PDF, Word o TXT. El sistema lo indexa y lo analiza automáticamente.</li>
+                  <li><strong className="text-[var(--text-primary)]">Pegar texto directo</strong> — Copiá el contenido de la convocatoria (o su FAQ, TDR, especificaciones) y pegalo directamente en el chat. El asistente lo detecta y lo procesa igual que un archivo subido.</li>
+                </ul>
+              </section>
+
+              <section>
+                <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-2">💾 Botón Guardar</h3>
+                <p>El botón <strong>Guardar</strong> en el header del chat guarda una copia de la conversación vinculada al proyecto activo. Usalo cuando quieras preservar una sesión importante antes de continuar en otra sesión.</p>
               </section>
 
               <section>
@@ -521,7 +535,7 @@ export function Sidebar({
                 <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-2">💬 ¿Qué puedo pedirle al asistente?</h3>
                 <ul className="space-y-1 list-disc list-inside">
                   <li>Buscar convocatorias activas por sector y país</li>
-                  <li>Analizar un documento de convocatoria subido</li>
+                  <li>Analizar un documento de convocatoria subido o texto pegado</li>
                   <li>Guiarte paso a paso en la formulación del proyecto</li>
                   <li>Construir Árboles de Problemas y Objetivos</li>
                   <li>Diseñar la Cadena de Valor con indicadores y metas</li>
@@ -530,6 +544,7 @@ export function Sidebar({
                   <li>Ejecutar el diagnóstico Cyrano</li>
                   <li>Generar borradores o el documento Word final del proyecto</li>
                 </ul>
+                <p className="mt-2">Cuando el asistente genera el documento Word, incluye un <strong>link de descarga</strong> directamente en el chat.</p>
               </section>
 
               <section>
@@ -557,10 +572,11 @@ export function Sidebar({
                 <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-2">💡 Consejos Útiles</h3>
                 <ul className="space-y-1 list-disc list-inside">
                   <li>Sé específico al describir tu problema central.</li>
-                  <li>Sube el documento de la convocatoria para que el AI extraiga requisitos automáticamente.</li>
-                  <li>Usa el diagnóstico Cyrano frecuentemente para ver tu progreso.</li>
-                  <li>El asistente trabaja en español e inglés — escribe en el idioma que prefieras.</li>
-                  <li>Puedes tener múltiples proyectos y convocatorias simultáneamente.</li>
+                  <li>Subí el documento de la convocatoria o pegá su texto directo en el chat — ambas formas funcionan igual.</li>
+                  <li>Usá el diagnóstico Cyrano frecuentemente para ver tu progreso.</li>
+                  <li>El chat puede estar en cualquier idioma, pero el documento Word se genera en el idioma que le indiques al asistente (español o inglés), independientemente del idioma de la convocatoria.</li>
+                  <li>Podés tener múltiples proyectos y convocatorias simultáneamente.</li>
+                  <li>Si la convocatoria es larga, pegá las secciones más relevantes (criterios, montos, fechas) en lugar del texto completo.</li>
                 </ul>
               </section>
             </div>

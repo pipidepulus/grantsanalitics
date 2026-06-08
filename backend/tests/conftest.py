@@ -236,43 +236,35 @@ def pg_client(pg_db):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Realistic OpenAI mock helpers
+# ChromaDB testing fixtures
 # ─────────────────────────────────────────────────────────────────────────────
 
-def make_openai_text_response(text: str):
-    """Build a minimal mock of an OpenAI Responses API response with plain text output."""
-    msg_content = MagicMock()
-    msg_content.type = "output_text"
-    msg_content.text = text
-
-    msg_item = MagicMock()
-    msg_item.type = "message"
-    msg_item.content = [msg_content]
-
-    response = MagicMock()
-    response.id = f"resp_{uuid.uuid4().hex[:12]}"
-    response.output = [msg_item]
-    response.output_text = text
-    return response
+import chromadb
 
 
-def make_openai_tool_then_text_response(tool_name: str, tool_args: dict, tool_output: str, final_text: str):
-    """Build a two-step mock: first response has a function_call, second has text.
+@pytest.fixture
+def chromadb_test_client():
+    """In-memory ChromaDB for testing."""
+    client = chromadb.EphemeralClient()
+    yield client
+    # Ephemeral auto-cleans
 
-    Returns a tuple ``(first_response, second_response)`` — wire them as
-    ``side_effect=[first_response, second_response]`` on the mock.
-    """
-    import json as _json
 
-    func_call = MagicMock()
-    func_call.type = "function_call"
-    func_call.name = tool_name
-    func_call.call_id = f"call_{uuid.uuid4().hex[:8]}"
-    func_call.arguments = _json.dumps(tool_args)
+# ─────────────────────────────────────────────────────────────────────────────
+# pgvector testing fixtures
+# ─────────────────────────────────────────────────────────────────────────────
 
-    first = MagicMock()
-    first.id = f"resp_{uuid.uuid4().hex[:12]}"
-    first.output = [func_call]
+from sqlalchemy.orm import sessionmaker as _sm
+from app.models.document import DocumentEmbedding
 
-    second = make_openai_text_response(final_text)
-    return first, second
+
+@pytest.fixture
+def pgvector_test_engine():
+    """Ephemeral pgvector table for testing."""
+    from sqlalchemy import create_engine as _ce
+    engine = _ce("sqlite:///:memory:")
+    Base.metadata.create_all(engine, tables=[DocumentEmbedding.__table__])
+    Session = _sm(bind=engine)
+    yield Session
+    Base.metadata.drop_all(engine, tables=[DocumentEmbedding.__table__])
+    engine.dispose()

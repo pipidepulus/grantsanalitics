@@ -28,3 +28,12 @@ build/
 landingleyia/
 
 assets/bankpro1.mp4
+
+/.vector_env
+.continue
+.github/workflows
+.vector_env
+data/
+docs/
+vector_db/
+

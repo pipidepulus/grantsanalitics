@@ -1,6 +1,6 @@
 """
 Unit tests for AI agent service.
-Tests agent orchestration logic with mocked OpenAI API.
+Tests agent orchestration logic with mocked Ollama API.
 """
 
 import json
@@ -10,7 +10,10 @@ from unittest.mock import patch, MagicMock, AsyncMock
 from app.services.ai_agent import (
     get_or_create_conversation,
     build_message_history,
+    build_local_search_tools,
+    SEARCH_TOOL_HANDLERS,
     TOOL_HANDLERS,
+    _parse_ollama_response,
 )
 from app.services.diagnostic import extract_cyrano_score as _extract_cyrano_score
 from app.models.conversation import Conversation, Message
@@ -83,7 +86,7 @@ class TestExtractCyranoScore:
         assert _extract_cyrano_score(text) is None
 
     def test_ignores_out_of_range(self):
-        text = "El valor es 150 puntos"  # > 100
+        text = "El valor es 150 puntos"
         assert _extract_cyrano_score(text) is None
 
     def test_extracts_puntaje_final(self):
@@ -91,14 +94,97 @@ class TestExtractCyranoScore:
         assert _extract_cyrano_score(text) == 96.2
 
 
-class TestToolHandlers:
-    def test_all_handlers_registered(self):
-        expected = [
-            "search_funding_calls",
-            "extract_requirements",
-            "calculate_budget",
-            "generate_word_document",
-            "run_diagnostic",
-        ]
-        for name in expected:
-            assert name in TOOL_HANDLERS, f"Handler '{name}' not registered"
+class TestOllamaResponseParsing:
+    def test_parses_plain_text(self):
+        response = {
+            "choices": [{"message": {"content": "Hola mundo"}}]
+        }
+        content, tool_calls, _ = _parse_ollama_response(response)
+        assert content == "Hola mundo"
+        assert tool_calls is None
+
+    def test_parses_tool_calls(self):
+        response = {
+            "choices": [{
+                "message": {
+                    "content": "Voy a buscar",
+                    "tool_calls": [{
+                        "id": "call_abc",
+                        "function": {"name": "retrieve_knowledge_base", "arguments": '{"query": "agua"}'}
+                    }]
+                }
+            }]
+        }
+        content, tool_calls, _ = _parse_ollama_response(response)
+        assert content == "Voy a buscar"
+        assert tool_calls is not None
+        assert len(tool_calls) == 1
+        assert tool_calls[0]["name"] == "retrieve_knowledge_base"
+        assert tool_calls[0]["arguments"]["query"] == "agua"
+
+    def test_empty_choice_returns_error(self):
+        response = {"choices": []}
+        content, tool_calls, _ = _parse_ollama_response(response)
+        assert content == "No se recibió respuesta del modelo."
+        assert tool_calls is None
+
+
+class TestBuildLocalSearchTools:
+    def test_no_project_id_returns_one_tool(self):
+        tools = build_local_search_tools(None)
+        assert len(tools) == 1
+        assert tools[0]["name"] == "retrieve_knowledge_base"
+
+    def test_with_project_id_returns_two_tools(self):
+        tools = build_local_search_tools(uuid.uuid4())
+        assert len(tools) == 2
+        names = [t["name"] for t in tools]
+        assert "retrieve_knowledge_base" in names
+        assert "retrieve_project_documents" in names
+
+    def test_retrieve_kb_has_function_type(self):
+        tools = build_local_search_tools(None)
+        tool = tools[0]
+        assert tool["type"] == "function"
+        assert "query" in tool["parameters"]["required"]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Ollama response mock helpers (replaces OpenAI mocks)
+# ─────────────────────────────────────────────────────────────────────
+
+def make_ollama_text_response(text: str):
+    """Build an Ollama /v1/chat/completions response with plain text."""
+    return {
+        "choices": [{
+            "message": {
+                "content": text,
+            }
+        }]
+    }
+
+
+def make_ollama_tool_then_text_response(
+    tool_name: str, tool_args: dict, tool_output: str, final_text: str
+):
+    """Build a two-step mock: first response has tool_calls, second has text.
+
+    Returns a list ``[first_response, second_response]`` — wire them as
+    ``side_effect=[first_response, second_response]`` on the mock.
+    """
+    # First call: tool call
+    first = {
+        "choices": [{
+            "message": {
+                "content": "",
+                "tool_calls": [{
+                    "id": "call_tool",
+                    "function": {"name": tool_name, "arguments": json.dumps(tool_args)},
+                }]
+            }]
+        }]
+    }
+
+    # Second call: final text response
+    second = make_ollama_text_response(final_text)
+    return [first, second]

@@ -100,6 +100,10 @@ export default function Home() {
 
   function handleScoreUpdate(score: number | null) {
     setCyranoScore(score);
+    // Auto-open the Review Panel so the Cyrano evaluation is immediately visible
+    if (score !== null && activeProjectId) {
+      setActiveView("review");
+    }
   }
 
   return (

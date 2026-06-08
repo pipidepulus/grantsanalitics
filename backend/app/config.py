@@ -6,11 +6,17 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "postgresql://pipidepulus:pipidepulus@localhost:5432/pipidepulus_db"
 
-    # OpenAI
-    OPENAI_API_KEY: str = ""
-    OPENAI_MODEL: str = "gpt-5-mini"
-    OPENAI_VECTOR_STORE_ID: str = ""  # Knowledge base (Metodología Propulsa)
-    OPENAI_PROJECTS_VECTOR_STORE_ID: str = ""  # Projects & call documents
+    # Ollama (replaces OPENAI_*)
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "gemma4-pipidepulus"
+    OLLAMA_MODEL_FALLBACK: str = "gemma4:e4b"
+    OLLAMA_EMBEDDING_MODEL: str = "nomic-embed-text"
+
+    # ChromaDB
+    CHROMA_DB_PATH: str = "/vector_db"
+
+    # Rollback feature flag
+    VECTOR_STORE_MODE: str = "hybrid"  # "hybrid" | "openai"
 
     # App
     APP_NAME: str = "Pipidepulus AI"

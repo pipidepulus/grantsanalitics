@@ -7,6 +7,17 @@ import type { StreamEvent } from "@/lib/api";
 import type { ChatMessage } from "@/lib/types";
 import { Send, Loader2, Menu, Paperclip, X, FileText, Save, Check, Square, Plus, Trash2, Copy } from "lucide-react";
 
+function generateId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  // Fallback for non-secure contexts (HTTP over LAN, etc.)
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
 interface ChatPanelProps {
   userId: string;
   conversationId: string | null;
@@ -74,13 +85,21 @@ function AssistantMessage({ msg }: { msg: ChatMessage }) {
           <p className="text-base whitespace-pre-wrap">{msg.content}</p>
         )}
 
-        {/* Tool calls indicator */}
-        {msg.tool_calls && (
-          <div className="mt-2 pt-2 border-t border-[var(--border-color)]">
-            <p className="text-[10px] text-[var(--text-secondary)] flex items-center gap-1">
-              ⚡ Herramientas utilizadas
-            </p>
-          </div>
+        {/* Tool calls indicator — expandable list */}
+        {msg.tool_calls && Array.isArray(msg.tool_calls) && (msg.tool_calls as Array<{ tool: string }>).length > 0 && (
+          <details className="mt-2 pt-2 border-t border-[var(--border-color)]">
+            <summary className="text-[10px] text-[var(--text-secondary)] cursor-pointer select-none flex items-center gap-1 hover:text-[var(--accent)] transition-colors">
+              ⚡ {(msg.tool_calls as Array<{ tool: string }>).length} herramienta(s) utilizada(s)
+            </summary>
+            <ul className="mt-1.5 space-y-0.5 pl-1">
+              {(msg.tool_calls as Array<{ tool: string }>).map((tc, i) => (
+                <li key={i} className="text-[10px] text-[var(--text-secondary)] flex items-center gap-1.5">
+                  <span className="text-green-400">✓</span>
+                  <code className="font-mono">{tc.tool}</code>
+                </li>
+              ))}
+            </ul>
+          </details>
         )}
       </div>
     </div>
@@ -220,7 +239,7 @@ export function ChatPanel({
 
     // Show the user message immediately (optimistic update)
     const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       role: "user",
       content: baseText,
       tool_calls: null,
@@ -293,7 +312,7 @@ export function ChatPanel({
       // Add the completed message only when not cancelled
       if (!controller.signal.aborted) {
         const assistantMessage: ChatMessage = {
-          id: crypto.randomUUID(),
+          id: generateId(),
           role: "assistant",
           content: accumulatedContent || "No se recibió respuesta.",
           tool_calls: finalToolCalls as Record<string, unknown> | null,
@@ -310,7 +329,7 @@ export function ChatPanel({
           setMessages((prev) => [
             ...prev,
             {
-              id: crypto.randomUUID(),
+              id: generateId(),
               role: "assistant",
               content: accumulatedContent + "\n\n*[Respuesta cancelada]*",
               tool_calls: null,
@@ -331,7 +350,7 @@ export function ChatPanel({
         setMessages((prev) => [
           ...prev,
           {
-            id: crypto.randomUUID(),
+            id: generateId(),
             role: "assistant",
             content: errorText,
             tool_calls: null,

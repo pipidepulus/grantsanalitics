@@ -11,7 +11,7 @@ from app.models.enums import ProjectStatus, ProjectLanguage
 if TYPE_CHECKING:
     from app.models.user import User
     from app.models.call_spec import CallSpec
-    from app.models.document import GeneratedDoc, UploadedDocument
+    from app.models.document import GeneratedDoc, UploadedDocument, DocumentEmbedding
     from app.models.cyrano_evaluation import CyranoEvaluation
 
 
@@ -45,6 +45,7 @@ class Project(Base):
     call_spec: Mapped["CallSpec | None"] = relationship(back_populates="projects")
     generated_docs: Mapped[list["GeneratedDoc"]] = relationship(back_populates="project", lazy="selectin")
     uploaded_documents: Mapped[list["UploadedDocument"]] = relationship(back_populates="project", lazy="selectin")
+    embeddings: Mapped[list["DocumentEmbedding"]] = relationship(back_populates="project", lazy="selectin")
     cyrano_evaluations: Mapped[list["CyranoEvaluation"]] = relationship(
         back_populates="project", lazy="selectin", order_by="CyranoEvaluation.version"
     )

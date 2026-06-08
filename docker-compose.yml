@@ -20,10 +20,17 @@ services:
       - .env
     environment:
       DATABASE_URL: postgresql://pipidepulus:pipidepulus@db:5432/pipidepulus_db
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      CHROMA_DB_PATH: /vector_db
+      STORAGE_LOCAL_PATH: /var/pipidepulus/storage
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - db
     volumes:
       - ./backend:/app
+      - ./data/vector_db:/vector_db
+      - ./data/storage:/var/pipidepulus/storage
 
   frontend:
     build:

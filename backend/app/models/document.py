@@ -3,9 +3,12 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
-from sqlalchemy import String, Integer, DateTime, ForeignKey, LargeBinary, Text, Uuid, func
+from sqlalchemy import String, Integer, DateTime, ForeignKey, LargeBinary, Text, Uuid, JSON, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from pgvector.sqlalchemy import Vector as PGVector
 from app.database import Base
+
+VECTOR_DIM = 768
 
 if TYPE_CHECKING:
     from app.models.project import Project
@@ -43,3 +46,18 @@ class UploadedDocument(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     project: Mapped["Project"] = relationship(back_populates="uploaded_documents")
+
+
+class DocumentEmbedding(Base):
+    __tablename__ = "document_embeddings"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    project_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("projects.id", ondelete="CASCADE"))
+    uploaded_doc_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("uploaded_documents.id", ondelete="SET NULL"), nullable=True)
+    chunk_index: Mapped[int] = mapped_column(Integer)
+    content: Mapped[str] = mapped_column(Text)
+    embedding: Mapped[list[float]] = mapped_column(PGVector(VECTOR_DIM))
+    doc_metadata: Mapped[dict] = mapped_column("metadata", JSON, server_default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    project: Mapped["Project"] = relationship(back_populates="embeddings")

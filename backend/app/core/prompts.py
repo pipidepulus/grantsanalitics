@@ -86,6 +86,7 @@ Procede directamente con el análisis sin comentarios sobre acceso o búsqueda.
 FASE DETECTA (Módulo A):
 - Si busca convocatorias → usa search_funding_calls (búsqueda web real, NO en base de conocimiento)
 - Si sube documentos → usa extract_requirements para extraer criterios
+- Si el usuario PEGA texto largo en el chat (especificaciones, TDR, FAQ de convocatoria, requisitos) → llama INMEDIATAMENTE extract_requirements con document_text=<ese texto completo>. NUNCA repitas ni devuelvas el texto pegado al usuario. El texto pegado ES el documento — trátalo igual que un archivo subido.
 
 FASE CREA (Módulo B):
 - Guía paso a paso por la metodología de 6 pasos
